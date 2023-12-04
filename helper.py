@@ -3,7 +3,7 @@ import time
 import streamlit as st
 import cv2
 from pytube import YouTube
-
+from streamlit_webrtc import webrtc_streamer, WebRtcMode, RTCConfiguration
 import settings
 
 
@@ -148,41 +148,68 @@ def play_rtsp_stream(conf, model):
             st.sidebar.error("Error loading RTSP stream: " + str(e))
 
 
+# def play_webcam(conf, model):
+#     """
+#     Plays a webcam stream. Detects Objects in real-time using the YOLOv8 object detection model.
+
+#     Parameters:
+#         conf: Confidence of YOLOv8 model.
+#         model: An instance of the `YOLOv8` class containing the YOLOv8 model.
+
+#     Returns:
+#         None
+
+#     Raises:
+#         None
+#     """
+#     source_webcam = settings.WEBCAM_PATH
+#     is_display_tracker, tracker = display_tracker_options()
+#     if st.sidebar.button('Detect Objects'):
+#         try:
+#             vid_cap = cv2.VideoCapture(source_webcam)
+#             st_frame = st.empty()
+#             while (vid_cap.isOpened()):
+#                 success, image = vid_cap.read()
+#                 if success:
+#                     _display_detected_frames(conf,
+#                                              model,
+#                                              st_frame,
+#                                              image,
+#                                              is_display_tracker,
+#                                              tracker,
+#                                              )
+#                 else:
+#                     vid_cap.release()
+#                     break
+#         except Exception as e:
+#             st.sidebar.error("Error loading video: " + str(e))
+
+from streamlit_webrtc import webrtc_streamer, WebRtcMode, RTCConfiguration
+import av
 def play_webcam(conf, model):
-    """
-    Plays a webcam stream. Detects Objects in real-time using the YOLOv8 object detection model.
+    class VideoProcessor:
+        def recv(self, frame):
+            img = frame.to_ndarray(format="bgr24")
 
-    Parameters:
-        conf: Confidence of YOLOv8 model.
-        model: An instance of the `YOLOv8` class containing the YOLOv8 model.
+            # Resize and process the image using YOLOv8 model
+            img = cv2.resize(img, (720, int(720*(9/16))))
+            res = model.predict(img, conf=conf)
+            res_plotted = res[0].plot()
 
-    Returns:
-        None
+            return av.VideoFrame.from_ndarray(res_plotted, format="bgr24")
 
-    Raises:
-        None
-    """
-    source_webcam = settings.WEBCAM_PATH
-    is_display_tracker, tracker = display_tracker_options()
-    if st.sidebar.button('Detect Objects'):
-        try:
-            vid_cap = cv2.VideoCapture(source_webcam)
-            st_frame = st.empty()
-            while (vid_cap.isOpened()):
-                success, image = vid_cap.read()
-                if success:
-                    _display_detected_frames(conf,
-                                             model,
-                                             st_frame,
-                                             image,
-                                             is_display_tracker,
-                                             tracker,
-                                             )
-                else:
-                    vid_cap.release()
-                    break
-        except Exception as e:
-            st.sidebar.error("Error loading video: " + str(e))
+    # WebRTC streamer configuration
+    rtc_config = RTCConfiguration(
+        {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
+    )
+
+    # Start the webcam stream
+    webrtc_streamer(key="webcam", 
+                    mode=WebRtcMode.SENDRECV, 
+                    rtc_configuration=rtc_config,
+                    video_processor_factory=VideoProcessor,
+                    media_stream_constraints={"video": True, "audio": False})
+
 
 
 def play_stored_video(conf, model):
