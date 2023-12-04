@@ -1,6 +1,4 @@
-To update your current README file with information about the Dockerfile you've used, you can add a new section titled "Docker Installation" that explains how to build and run the Docker container. Here's how you can incorporate this into your README:
 
----
 
 # Real-time Object Detection and Tracking with YOLOv8 and Streamlit
 
@@ -64,7 +62,3 @@ This app is based on the YOLOv8 object detection algorithm and uses the Streamli
 This project is for educational purposes and not recommended for production environments.
 
 **If you appreciate these enhancements, consider giving a star ⭐ to this repo!**
-
----
-
-This updated README now includes instructions for building and running the Docker container and a link to the original README for further documentation.
