@@ -32,7 +32,34 @@ To run this application in a Docker container, follow these steps:
    ```
    This command runs the Docker container, mapping port 8501 of the container to port 8501 on the host machine.
 
-After running these commands, the Streamlit app should be accessible at `http://localhost:8501`.
+
+### Running with Self-Signed Certificate
+
+To securely access the Streamlit application over HTTPS using a self-signed certificate, follow these steps:
+
+1. **Generate a Self-Signed Certificate:**
+   Use OpenSSL to create a self-signed certificate and a private key without a passphrase:
+   ```bash
+   openssl req -x509 -newkey rsa:4096 -keyout private.key -out certchain.pem -days 365 -nodes
+   ```
+   Place these files in a known directory.
+
+2. **Configure Streamlit for HTTPS:**
+   In the `.streamlit/config.toml` file, specify the paths to the certificate and key:
+   ```toml
+   [server]
+   sslCertFile = '/path/to/certchain.pem'
+   sslKeyFile = '/path/to/private.key'
+   ```
+   Ensure these paths correctly point to where you stored the certificate and key.
+
+3. **Build and Run the Docker Container:**
+   Build the Docker image and run the container with port mapping as described in the Docker Installation section. The Streamlit app will now be accessible over HTTPS.
+
+Self-signed certificates are typically used for testing and should not be used in production environments.
+
+The current repo is preconfigured for HTTPS access with a self-signed certificate. To use your own certificate, replace the `certchain.pem` and `private.key` files in the `certs` directory with your own certificate and key, respectively. Then, follow the steps above to configure Streamlit for HTTPS.
+
 
 ## Requirements
 
@@ -46,6 +73,19 @@ After running these commands, the Streamlit app should be accessible at `http://
 ```bash
 pip install -r requirements.txt
 ```
+
+
+## Accessing the Application
+
+After successfully setting up and running the application, you can access the Streamlit web interface securely over HTTPS:
+
+1. Open your web browser.
+
+2. Navigate to `https://localhost:8501`.
+
+   - Since a self-signed certificate is used, your browser may warn you that the connection is not private. You will need to proceed past this warning (the exact method varies by browser).
+
+Remember, this method is for testing purposes only. For production environments, it's recommended to use a certificate from a trusted certificate authority.
 
 ## Installation and Usage
 
